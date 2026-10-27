@@ -10,7 +10,7 @@ from io import BytesIO
 import requests 
 import smtplib
 from email.mime.text import MIMEText
-import os # NOUVEAU : Pour lire les variables d'environnement
+import os 
 
 from pollinations import Pollinations
 
@@ -24,8 +24,14 @@ app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
 # ==============================================================
 # CONFIGURATION DE LA BASE DE DONNÉES (LOCAL vs RENDER)
 # ==============================================================
-# Sur Render, on utilisera l'URL PostgreSQL. Sur ton PC, on utilisera SQLite.
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
+# On adapte l'URL pour le nouveau pilote psycopg
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
