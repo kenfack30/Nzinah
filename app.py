@@ -10,6 +10,7 @@ from io import BytesIO
 import requests 
 import smtplib
 from email.mime.text import MIMEText
+import os # NOUVEAU : Pour lire les variables d'environnement
 
 from pollinations import Pollinations
 
@@ -19,7 +20,12 @@ from reportlab.lib.units import cm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///avis.db'
+
+# ==============================================================
+# CONFIGURATION DE LA BASE DE DONNÉES (LOCAL vs RENDER)
+# ==============================================================
+# Sur Render, on utilisera l'URL PostgreSQL. Sur ton PC, on utilisera SQLite.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -40,7 +46,7 @@ def envoyer_sms_negatif(numero_telephone, nom_entreprise, total_negatifs):
             if numero_formate.startswith('6'): numero_formate = '+237' + numero_formate
             else: numero_formate = '+' + numero_formate
 
-        message = f"⚠️ ReputationPro : Attention {nom_entreprise}, vous venez d'atteindre {total_negatifs} avis négatifs. Connectez-vous vite pour y répondre !"
+        message = f"⚠️ Nzinah : Attention {nom_entreprise}, vous venez d'atteindre {total_negatifs} avis négatifs. Connectez-vous vite pour y répondre !"
         payload = {'apikey': CLE_API_SMS, 'recipients': numero_formate, 'message': message}
         response = requests.post(URL_API_SMS, data=payload, timeout=10)
         print(f"SMS API Response: {response.text}")
@@ -382,7 +388,7 @@ def rapport_pdf():
 
     p.setFont("Helvetica-Bold", 24)
     p.setFillColorRGB(0.06, 0.72, 0.51)
-    p.drawString(2*cm, height - 3*cm, "ReputationPro")
+    p.drawString(2*cm, height - 3*cm, "Nzinah")
     
     p.setFont("Helvetica-Oblique", 14)
     p.setFillColorRGB(0.4, 0.4, 0.4)
@@ -424,12 +430,11 @@ def rapport_pdf():
 @app.route('/admin-secret')
 @login_required
 def admin_secret():
-    # ⚠️ SÉCURITÉ : Remplace par TON adresse email (celle avec laquelle tu te connectes sur ton site)
+    # ⚠️ SÉCURITÉ : Remplace par TON adresse email
     if current_user.email != "jsongtama@gmail.com": 
         flash("Accès refusé. Vous n'êtes pas administrateur.", "error")
         return redirect(url_for('accueil'))
 
-    # On récupère les clients gratuits ET les clients premium
     clients_gratuits = Utilisateur.query.filter(Utilisateur.plan == 'Gratuit').all()
     clients_premium = Utilisateur.query.filter(Utilisateur.plan == 'Premium').all()
     
@@ -454,4 +459,4 @@ def activer_premium(user_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=False)
