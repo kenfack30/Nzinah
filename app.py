@@ -25,11 +25,10 @@ app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
 # CONFIGURATION DE LA BASE DE DONNÉES (LOCAL vs RENDER)
 # ==============================================================
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
-# On adapte l'URL pour le nouveau pilote psycopg
+# On adapte l'URL pour le pilote psycopg2
 if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
-elif db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+# psycopg2 est le pilote par défaut pour postgresql://, on n'a pas besoin de le préciser
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
