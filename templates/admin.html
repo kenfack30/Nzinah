@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - ReputationPro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>ReputationPro (Admin)</h2>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold;">{{ current_user.nom_entreprise }}</div>
+        <a href="{{ url_for('accueil') }}">📊 Retour au site</a>
+        <a href="{{ url_for('logout') }}" style="margin-top: auto; color: #ef4444;">🚪 Déconnexion</a>
+    </div>
+
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="padding: 15px; margin-bottom: 20px; border-radius: 8px; font-weight: bold; background-color: {% if category == 'error' %}#fee2e2{% else %}#d1fae5{% endif %}; color: {% if category == 'error' %}#ef4444{% else %}#10b981{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="header">
+            <h1>Panneau d'administration</h1>
+        </div>
+
+        <!-- TABLEAU 1 : LES CLIENTS PREMIUM -->
+        <h2 style="margin-top: 30px; margin-bottom: 15px; color: #10b981; font-size: 22px;">⭐ Clients Premium (Abonnés)</h2>
+        <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; overflow: hidden; margin-bottom: 40px;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background: #f0fdf4; border-bottom: 1px solid #e5e7eb;">
+                        <th style="padding: 15px; color: #065f46;">Entreprise</th>
+                        <th style="padding: 15px; color: #065f46;">Email</th>
+                        <th style="padding: 15px; color: #065f46;">Téléphone</th>
+                        <th style="padding: 15px; color: #065f46;">Expire le</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients_premium %}
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 15px; font-weight: 600;">{{ client.nom_entreprise }}</td>
+                        <td style="padding: 15px; color: #6b7280;">{{ client.email }}</td>
+                        <td style="padding: 15px; color: #6b7280;">{{ client.telephone }}</td>
+                        <td style="padding: 15px; color: #065f46; font-weight: bold;">{{ client.date_expiration.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="padding: 30px; text-align: center; color: #6b7280;">Aucun client Premium pour le moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TABLEAU 2 : LES CLIENTS EN ESSAI GRATUIT -->
+        <h2 style="margin-bottom: 15px; color: #f59e0b; font-size: 22px;">⏳ Clients en Essai Gratuit</h2>
+        <p style="color: #4b5563; margin-bottom: 15px;">Dès qu'un client vous paie par Mobile Money, cliquez sur "Activer Premium" pour lui donner 30 jours d'accès.</p>
+        
+        <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background: #fef3c7; border-bottom: 1px solid #e5e7eb;">
+                        <th style="padding: 15px; color: #92400e;">Entreprise</th>
+                        <th style="padding: 15px; color: #92400e;">Email</th>
+                        <th style="padding: 15px; color: #92400e;">Téléphone</th>
+                        <th style="padding: 15px; color: #92400e;">Jours restants</th>
+                        <th style="padding: 15px; color: #92400e;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients_gratuits %}
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 15px; font-weight: 600;">{{ client.nom_entreprise }}</td>
+                        <td style="padding: 15px; color: #6b7280;">{{ client.email }}</td>
+                        <td style="padding: 15px; color: #6b7280;">{{ client.telephone }}</td>
+                        <td style="padding: 15px; color: #ef4444; font-weight: bold;">{{ client.jours_restants() }} j</td>
+                        <td style="padding: 15px;">
+                            <a href="{{ url_for('activer_premium', user_id=client.id) }}" style="background-color: #10b981; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold;" onclick="return confirm('Confirmer le paiement reçu pour ce client ?');">
+                                Activer Premium
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 30px; text-align: center; color: #6b7280;">Aucun client en essai gratuit pour le moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

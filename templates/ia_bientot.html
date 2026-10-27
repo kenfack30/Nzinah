@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Réponses IA - ReputationPro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>ReputationPro</h2>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold;">{{ current_user.nom_entreprise }}</div>
+        <a href="{{ url_for('accueil') }}">📊 Tableau de bord</a>
+        <a href="{{ url_for('tous_les_avis') }}">⭐ Tous les avis</a>
+        <a href="{{ url_for('importer') }}">📥 Importer des avis</a>
+        <a href="{{ url_for('ia_bientot') }}" class="active">🤖 Réponses IA</a>
+        <a href="{{ url_for('abonnement') }}">💳 Abonnement</a>
+        <a href="{{ url_for('parametres') }}">⚙️ Paramètres</a>
+        <a href="{{ url_for('logout') }}" style="margin-top: auto; color: #ef4444;">🚪 Déconnexion</a>
+    </div>
+
+    <div class="main-content" style="display: flex; justify-content: center; align-items: center; text-align: center;">
+        <div>
+            <h1 style="font-size: 48px; margin-bottom: 20px;">🤖</h1>
+            <h1 style="color: #111827; margin-bottom: 15px;">L'Intelligence Artificielle arrive bientôt !</h1>
+            <p style="color: #6b7280; font-size: 18px; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                Nous préparons la connexion avec OpenAI (ChatGPT) pour générer des réponses parfaites à vos avis en un clic. Revenez très bientôt !
+            </p>
+        </div>
+    </div>
+</body>
+</html>

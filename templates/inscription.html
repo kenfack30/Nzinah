@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription - Nzinah</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="display: flex; justify-content: center; align-items: center; background-color: #f3f4f6;">
+    <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px;">
+        
+        <!-- LOGO ET NOM -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px;">
+            <h2 style="color: #10b981; font-size: 26px; margin: 0; font-weight: 800;">Nzinah</h2>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 5px;">L'Excellence de votre Réputation</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="padding: 10px; margin-bottom: 20px; border-radius: 5px; font-weight: bold; background-color: {% if category == 'error' %}#fee2e2{% else %}#d1fae5{% endif %}; color: {% if category == 'error' %}#ef4444{% else %}#10b981{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <h3 style="text-align: center; margin-bottom: 20px; color: #374151;">Créer un compte</h3>
+        
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" name="nom_entreprise" placeholder="Nom de votre entreprise" required style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 8px;">
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" placeholder="Adresse email" required style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 8px;">
+            </div>
+            <div class="form-group">
+                <input type="tel" name="telephone" placeholder="Numéro de téléphone (MTN/Orange)" required style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 8px;">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Mot de passe" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #d1d5db; border-radius: 8px;">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 12px;">S'inscrire</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #4b5563;">
+            Déjà un compte ? <a href="{{ url_for('login') }}" style="color: #10b981; text-decoration: none; font-weight: bold;">Connectez-vous</a>
+        </p>
+    </div>
+</body>
+</html>

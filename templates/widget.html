@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Widget - Nzinah</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 45px; height: 45px; object-fit: contain;">
+            <div>
+                <h2 style="color: #10b981; font-size: 22px; margin: 0; font-weight: 800; line-height: 1;">Nzinah</h2>
+                <p style="color: #6b7280; font-size: 10px; margin: 0; margin-top: 3px;">L'Excellence de votre Réputation</p>
+            </div>
+        </div>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold; padding-left: 60px;">{{ current_user.nom_entreprise }}</div>
+        <a href="{{ url_for('accueil') }}">📊 Tableau de bord</a>
+        <a href="{{ url_for('tous_les_avis') }}">⭐ Tous les avis</a>
+        <a href="{{ url_for('synchroniser_google') }}">🔍 Synchroniser Google</a>
+        <a href="{{ url_for('importer') }}">📥 Importer CSV</a>
+        <a href="{{ url_for('widget') }}" class="active">🌐 Widget Site Web</a>
+        <a href="{{ url_for('abonnement') }}">💳 Abonnement</a>
+        <a href="{{ url_for('parametres') }}">⚙️ Paramètres</a>
+        <a href="{{ url_for('logout') }}" style="margin-top: auto; color: #ef4444;">🚪 Déconnexion</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Affichez vos étoiles sur votre site web</h1>
+        </div>
+
+        <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; max-width: 800px;">
+            <h3 style="margin-bottom: 15px; color: #111827;">1. Copiez ce code</h3>
+            <p style="color: #6b7280; margin-bottom: 15px;">Collez-le dans le code HTML de votre site web (WordPress, Wix, etc.) là où vous voulez voir apparaître vos étoiles.</p>
+            
+            <textarea readonly style="width: 100%; height: 100px; padding: 15px; font-family: monospace; background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; resize: none; margin-bottom: 30px;">{{ code_html }}</textarea>
+
+            <h3 style="margin-bottom: 15px; color: #111827;">2. Voici à quoi ça ressemblera :</h3>
+            <div style="border: 2px dashed #d1d5db; padding: 30px; border-radius: 12px; text-align: center; background: #f9fafb;">
+                <script src="/widget-api/{{ current_user.id }}"></script>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

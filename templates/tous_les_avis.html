@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tous les avis - Nzinah</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 45px; height: 45px; object-fit: contain;">
+            <div>
+                <h2 style="color: #10b981; font-size: 22px; margin: 0; font-weight: 800; line-height: 1;">Nzinah</h2>
+                <p style="color: #6b7280; font-size: 10px; margin: 0; margin-top: 3px;">L'Excellence de votre Réputation</p>
+            </div>
+        </div>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold; padding-left: 60px;">{{ current_user.nom_entreprise }}</div>
+        <a href="{{ url_for('accueil') }}">📊 Tableau de bord</a>
+        <a href="{{ url_for('tous_les_avis') }}" class="active">⭐ Tous les avis</a>
+        <a href="{{ url_for('synchroniser_google') }}">🔍 Synchroniser Google</a>
+        <a href="{{ url_for('importer') }}">📥 Importer CSV</a>
+        <a href="{{ url_for('widget') }}">🌐 Widget Site Web</a>
+        <a href="{{ url_for('abonnement') }}">💳 Abonnement</a>
+        <a href="{{ url_for('parametres') }}">⚙️ Paramètres</a>
+        <a href="{{ url_for('logout') }}" style="margin-top: auto; color: #ef4444;">🚪 Déconnexion</a>
+    </div>
+
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="padding: 15px; margin-bottom: 20px; border-radius: 8px; font-weight: bold; background-color: {% if category == 'error' %}#fee2e2{% else %}#d1fae5{% endif %}; color: {% if category == 'error' %}#ef4444{% else %}#10b981{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="header">
+            <h1>Tous les avis</h1>
+            <a href="{{ url_for('importer') }}" class="btn-primary">📥 Importer un fichier</a>
+        </div>
+
+        {% for avis in avis %}
+        <div class="review-card">
+            <div class="review-header">
+                <div>
+                    <span class="review-author">{{ avis.client }}</span>
+                    <span class="review-platform">{{ avis.plateforme }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="review-stars">{% for i in range(avis.note) %}⭐{% endfor %} ({{ avis.note }}/5)</div>
+                    <form method="POST" action="{{ url_for('accueil') }}" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?');">
+                        <input type="hidden" name="avis_id" value="{{ avis.id }}">
+                        <button type="submit" name="supprimer_avis" class="btn-danger" style="padding: 4px 8px; font-size: 12px;">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            <p class="review-text">"{{ avis.texte }}"</p>
+            
+            {% if avis.reponse %}
+            <div class="review-reply"><strong>Réponse de l'entreprise :</strong> {{ avis.reponse }}</div>
+            {% else %}
+            <form method="POST" action="{{ url_for('accueil') }}" class="reply-form" style="display: flex; gap: 10px; align-items: center;">
+                <input type="hidden" name="avis_id" value="{{ avis.id }}">
+                <button type="submit" name="generer_ia" style="background-color: #8b5cf6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 8px;">🤖 Répondre avec l'IA</button>
+                <span style="color: #9ca3af; font-size: 14px;">ou</span>
+                <input type="text" name="texte_reponse" placeholder="Écrire une réponse..." style="flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                <button type="submit" name="repondre" style="background-color: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Envoyer</button>
+            </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <p style="color: #6b7280; text-align: center; margin-top: 50px;">Aucun avis pour le moment.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

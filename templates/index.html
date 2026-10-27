@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de bord - Nzinah</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 45px; height: 45px; object-fit: contain;">
+            <div>
+                <h2 style="color: #10b981; font-size: 22px; margin: 0; font-weight: 800; line-height: 1;">Nzinah</h2>
+                <p style="color: #6b7280; font-size: 10px; margin: 0; margin-top: 3px;">L'Excellence de votre Réputation</p>
+            </div>
+        </div>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold; padding-left: 60px;">{{ current_user.nom_entreprise }}</div>
+        <a href="{{ url_for('accueil') }}" class="active">📊 Tableau de bord</a>
+        <a href="{{ url_for('tous_les_avis') }}">⭐ Tous les avis</a>
+        <a href="{{ url_for('synchroniser_google') }}">🔍 Synchroniser Google</a>
+        <a href="{{ url_for('importer') }}">📥 Importer CSV</a>
+        <a href="{{ url_for('widget') }}">🌐 Widget Site Web</a>
+        <a href="{{ url_for('abonnement') }}">💳 Abonnement</a>
+        <a href="{{ url_for('parametres') }}">⚙️ Paramètres</a>
+        <a href="{{ url_for('logout') }}" style="margin-top: auto; color: #ef4444;">🚪 Déconnexion</a>
+    </div>
+
+    <div class="main-content">
+        {% if current_user.plan == 'Gratuit' %}
+            {% set jours = current_user.jours_restants() %}
+            <div style="background-color: {% if jours <= 3 %}#fee2e2{% else %}#fef3c7{% endif %}; border: 2px solid {% if jours <= 3 %}#ef4444{% else %}#f59e0b{% endif %}; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="margin: 0; font-size: 18px; font-weight: bold; color: {% if jours <= 3 %}#991b1b{% else %}#92400e{% endif %};">
+                        ⏳ Il vous reste <strong>{{ jours }} jours</strong> d'essai.
+                    </p>
+                    {% if jours <= 3 %}
+                    <p style="margin: 5px 0 0 0; color: #991b1b; font-size: 14px;">
+                        Attention ! Votre compte sera bientôt bloqué. Abonnez-vous maintenant.
+                    </p>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('abonnement') }}" style="background-color: {% if jours <= 3 %}#ef4444{% else %}#f59e0b{% endif %}; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                    Choisir un plan
+                </a>
+            </div>
+        {% else %}
+            <div style="background-color: #d1fae5; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <p style="margin: 0; font-weight: bold; color: #065f46;">
+                    ✅ Vous êtes abonné au plan <strong>{{ current_user.plan }}</strong>. Expire le {{ current_user.date_expiration.strftime('%d/%m/%Y') }}.
+                </p>
+            </div>
+        {% endif %}
+
+        <div style="background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+            <p style="margin: 0; color: #374151; font-weight: 600;">
+                🔍 Synchronisations Google restantes :
+            </p>
+            <div style="font-size: 18px; font-weight: bold; color: {% if 10 - current_user.recherches_google <= 3 %}#ef4444{% else %}#10b981{% endif %};">
+                {{ 10 - current_user.recherches_google }} / 10
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="padding: 15px; margin-bottom: 20px; border-radius: 8px; font-weight: bold; background-color: {% if category == 'error' %}#fee2e2{% else %}#d1fae5{% endif %}; color: {% if category == 'error' %}#ef4444{% else %}#10b981{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="header">
+            <h1>Tableau de bord</h1>
+            <a href="{{ url_for('rapport_pdf') }}" class="btn-primary" style="background-color: #ef4444; text-decoration: none;">📄 Télécharger le PDF</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Note Moyenne</h3>
+                <p>{{ moyenne }} / 5</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total des Avis</h3>
+                <p>{{ total }}</p>
+            </div>
+            <div class="stat-card warning">
+                <h3>Avis Négatifs (≤ 2)</h3>
+                <p>{{ negatifs }}</p>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 20px;">Avis Récents</h2>
+            <a href="{{ url_for('tous_les_avis') }}" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Voir tout →</a>
+        </div>
+        
+        {% for avis in avis %}
+        <div class="review-card">
+            <div class="review-header">
+                <div>
+                    <span class="review-author">{{ avis.client }}</span>
+                    <span class="review-platform">{{ avis.plateforme }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="review-stars">{% for i in range(avis.note) %}⭐{% endfor %} ({{ avis.note }}/5)</div>
+                    <form method="POST" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?');">
+                        <input type="hidden" name="avis_id" value="{{ avis.id }}">
+                        <button type="submit" name="supprimer_avis" class="btn-danger" style="padding: 4px 8px; font-size: 12px;">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            <p class="review-text">"{{ avis.texte }}"</p>
+            
+            {% if avis.reponse %}
+            <div class="review-reply"><strong>Réponse de l'entreprise :</strong> {{ avis.reponse }}</div>
+            {% else %}
+            <form method="POST" class="reply-form" style="display: flex; gap: 10px; align-items: center;">
+                <input type="hidden" name="avis_id" value="{{ avis.id }}">
+                <button type="submit" name="generer_ia" style="background-color: #8b5cf6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 8px;">🤖 Répondre avec l'IA</button>
+                <span style="color: #9ca3af; font-size: 14px;">ou</span>
+                <input type="text" name="texte_reponse" placeholder="Écrire une réponse..." style="flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                <button type="submit" name="repondre" style="background-color: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Envoyer</button>
+            </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <p style="color: #6b7280; text-align: center; margin-top: 50px;">Aucun avis pour le moment. Allez dans "Importer des avis".</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

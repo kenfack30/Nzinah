@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Paramètres - Nzinah</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 45px; height: 45px; object-fit: contain;">
+            <div>
+                <h2 style="color: #10b981; font-size: 22px; margin: 0; font-weight: 800; line-height: 1;">Nzinah</h2>
+                <p style="color: #6b7280; font-size: 10px; margin: 0; margin-top: 3px;">L'Excellence de votre Réputation</p>
+            </div>
+        </div>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold; padding-left: 60px;">{{ current_user.nom_entreprise }}</div>
+        <a href="{{ url_for('accueil') }}">📊 Tableau de bord</a>
+        <a href="{{ url_for('tous_les_avis') }}">⭐ Tous les avis</a>
+        <a href="{{ url_for('synchroniser_google') }}">🔍 Synchroniser Google</a>
+        <a href="{{ url_for('importer') }}">📥 Importer CSV</a>
+        <a href="{{ url_for('widget') }}">🌐 Widget Site Web</a>
+        <a href="{{ url_for('abonnement') }}">💳 Abonnement</a>
+        <a href="{{ url_for('parametres') }}" class="active">⚙️ Paramètres</a>
+        <a href="{{ url_for('logout') }}" style="margin-top: auto; color: #ef4444;">🚪 Déconnexion</a>
+    </div>
+
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="padding: 15px; margin-bottom: 20px; border-radius: 8px; font-weight: bold; background-color: {% if category == 'error' %}#fee2e2{% else %}#d1fae5{% endif %}; color: {% if category == 'error' %}#ef4444{% else %}#10b981{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="header">
+            <h1>Paramètres du compte</h1>
+        </div>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; flex: 1; min-width: 300px;">
+                <h3 style="margin-bottom: 20px; color: #111827;">Profil de l'entreprise</h3>
+                <form method="POST">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Nom de l'entreprise</label>
+                        <input type="text" name="nom_entreprise" value="{{ current_user.nom_entreprise }}" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Adresse Email (Non modifiable)</label>
+                        <input type="text" value="{{ current_user.email }}" disabled style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; background-color: #f9fafb; color: #6b7280;">
+                    </div>
+                    <button type="submit" name="modifier_nom" class="btn-primary">Enregistrer le nom</button>
+                </form>
+            </div>
+
+            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; flex: 1; min-width: 300px;">
+                <h3 style="margin-bottom: 20px; color: #111827;">Sécurité</h3>
+                <form method="POST">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Ancien mot de passe</label>
+                        <input type="password" name="ancien_mdp" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Nouveau mot de passe</label>
+                        <input type="password" name="nouveau_mdp" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                    </div>
+                    <button type="submit" name="modifier_mdp" class="btn-primary" style="background-color: #3b82f6;">Changer le mot de passe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
