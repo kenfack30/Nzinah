@@ -59,7 +59,14 @@
             <p class="review-text">"{{ avis.texte }}"</p>
             
             {% if avis.reponse %}
-            <div class="review-reply"><strong>Réponse de l'entreprise :</strong> {{ avis.reponse }}</div>
+            <div class="review-reply" style="position: relative;">
+                <strong>Réponse de l'entreprise :</strong> 
+                <p id="reponse-all-{{ avis.id }}" style="margin-top: 5px;">{{ avis.reponse }}</p>
+                
+                <button onclick="copierTexte('reponse-all-{{ avis.id }}')" style="margin-top: 10px; background-color: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                    📋 Copier la réponse
+                </button>
+            </div>
             {% else %}
             <form method="POST" action="{{ url_for('accueil') }}" class="reply-form" style="display: flex; gap: 10px; align-items: center;">
                 <input type="hidden" name="avis_id" value="{{ avis.id }}">
@@ -74,5 +81,17 @@
         <p style="color: #6b7280; text-align: center; margin-top: 50px;">Aucun avis pour le moment.</p>
         {% endfor %}
     </div>
+
+    <script>
+        function copierTexte(idElement) {
+            var texte = document.getElementById(idElement).innerText;
+            
+            navigator.clipboard.writeText(texte).then(function() {
+                alert("✅ Réponse copiée ! Vous pouvez maintenant la coller sur Google.");
+            }, function(err) {
+                alert("❌ Erreur lors de la copie.");
+            });
+        }
+    </script>
 </body>
 </html>
