@@ -9,6 +9,8 @@ import io
 from io import BytesIO
 import requests 
 import os
+import smtplib
+from email.mime.text import MIMEText
 from pollinations import Pollinations
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -18,7 +20,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
 
 # ==============================================================
-# CONNEXION A LA BASE DE DONNÉES (RENDER / POSTGRESQL)
+# CONNEXION A LA BASE DE DONNÉES
 # ==============================================================
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
 if db_url.startswith("postgres://"):
@@ -38,13 +40,40 @@ login_manager.login_view = 'login'
 
 # ==============================================================
 # CONFIGURATION
-CLE_API_SMS = "6a4fbe7ae8ebddd063ae97a87cbb28e24bbdfa66d16b696f"
-URL_API_SMS = "https://api.smsmobileapi.com/sendsms/"
-CLE_API_POLLINATIONS = "sk_ZVxmfVqjO01Tm3Hxq67UcrXFZCQmasOm"
+EMAIL_EXPEDITEUR = "jsongtama@gmail.com" 
+EMAIL_MOT_DE_PASSE = "nzyxcxmyliizdivv" # Ton code de 16 lettres
 EMAIL_ADMIN = "jsongtama@gmail.com" 
+
+CLE_API_POLLINATIONS = "sk_ZVxmfVqjO01Tm3Hxq67UcrXFZCQmasOm"
 PRIX_BASE = 10000
 TOKEN_APIFY = "apify_api_QaViakKtCu50tZaS70yNtZqhpRjT7CC2RUUpg"
 # ==============================================================
+
+# --- FONCTIONS D'ENVOI D'EMAIL ---
+def envoyer_email_generique(destinataire, sujet, corps):
+    if not destinataire: return
+    try:
+        msg = MIMEText(corps)
+        msg['Subject'] = sujet
+        msg['From'] = EMAIL_EXPEDITEUR
+        msg['To'] = destinataire
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(EMAIL_EXPEDITEUR, EMAIL_MOT_DE_PASSE)
+        server.send_message(msg)
+        server.quit()
+        print(f"✅ Email envoyé à {destinataire}")
+    except Exception as e:
+        print(f"❌ Erreur Envoi Email : {e}")
+
+def envoyer_alerte_bad_buzz(email_destinataire, nom_entreprise, nom_client, note, texte_avis):
+    message = f"🚨 ALERTE BAD BUZZ - {nom_entreprise}\n\n"
+    message += f"Un client vient de laisser un avis négatif ({note}/5).\n\n"
+    message += f"Client : {nom_client}\n"
+    message += f"Avis : \"{texte_avis}\"\n\n"
+    message += f"Connectez-vous vite sur Nzinah pour répondre."
+    envoyer_email_generique(email_destinataire, f"🚨 Alerte : Nouvel avis négatif pour {nom_entreprise}", message)
 
 # --- BASE DE DONNÉES ---
 class CodePromo(db.Model):
@@ -120,16 +149,36 @@ def inscription():
                 prix_final = PRIX_BASE - promo_en_bdd.reduction
             
         nouvel_user = Utilisateur(
-            nom_entreprise=nom, 
-            email=email, 
-            telephone=telephone, 
+            nom_entreprise=nom, email=email, telephone=telephone, 
             mot_de_passe=generate_password_hash(password, method='pbkdf2:sha256'),
-            code_promo=code_promo if code_promo else None,
-            prix_a_payer=prix_final
+            code_promo=code_promo if code_promo else None, prix_a_payer=prix_final
         )
         db.session.add(nouvel_user)
         db.session.commit()
         login_user(nouvel_user)
+        
+        # 📧 EMAIL 1 : MESSAGE DE BIENVENUE POUR LE CLIENT
+        msg_client = f"Bonjour {nom},\n\n"
+        msg_client += f"Bienvenue sur Nzinah ! Votre compte a été créé avec succès.\n\n"
+        msg_client += f"Vous bénéficiez de 14 jours d'essai gratuit pour découvrir toutes les fonctionnalités :\n"
+        msg_client += f"- Importation de vos avis Google\n"
+        msg_client += f"- Réponses par Intelligence Artificielle\n"
+        msg_client += f"- Widget pour votre site web\n\n"
+        if prix_final < PRIX_BASE:
+            msg_client += f"Votre code promo '{code_promo}' a bien été appliqué. Votre premier mois vous coûtera {prix_final} FCFA.\n\n"
+        
+        msg_client += f"Pour commencer, connectez-vous ici : https://nzinah.onrender.com/login\n\n"
+        msg_client += f"L'équipe Nzinah."
+        envoyer_email_generique(email, "Bienvenue sur Nzinah - Votre essai a commencé !", msg_client)
+        
+        # 📧 EMAIL 2 : NOTIFICATION POUR TOI (L'ADMIN)
+        msg_admin = f"🎉 Nouvelle inscription sur Nzinah !\n\n"
+        msg_admin += f"Entreprise : {nom}\n"
+        msg_admin += f"Email : {email}\n"
+        msg_admin += f"Téléphone : {telephone}\n"
+        msg_admin += f"Code promo utilisé : {code_promo if code_promo else 'Aucun'}\n"
+        msg_admin += f"Montant à payer après essai : {prix_final} FCFA"
+        envoyer_email_generique(EMAIL_ADMIN, f"🎉 Nouveau client : {nom}", msg_admin)
         
         if prix_final < PRIX_BASE:
             flash(f"Bienvenue ! Code promo appliqué. Vous paierez {prix_final} FCFA.", "success")
@@ -229,6 +278,10 @@ def importer():
                         nouvel_avis = Avis(client=row[0], plateforme=row[1], note=int(row[2]), texte=row[3], user_id=current_user.id)
                         db.session.add(nouvel_avis)
                         compteur += 1
+                        
+                        if int(row[2]) <= 2:
+                            envoyer_alerte_bad_buzz(current_user.email, current_user.nom_entreprise, row[0], int(row[2]), row[3])
+                            
                     except: pass
             db.session.commit()
             flash(f'{compteur} avis importés !', "success")
@@ -360,6 +413,9 @@ def synchroniser_google():
                             nouvel_avis = Avis(client=avis.get('name', 'Client Google'), plateforme="Google", note=avis.get('stars', 5), texte=avis.get('text', ''), user_id=current_user.id)
                             db.session.add(nouvel_avis)
                             compteur += 1
+                            
+                            if avis.get('stars', 5) <= 2:
+                                envoyer_alerte_bad_buzz(current_user.email, current_user.nom_entreprise, avis.get('name', 'Client'), avis.get('stars', 5), avis.get('text', ''))
             
             current_user.sync_count += 1
             db.session.commit()
@@ -409,24 +465,17 @@ def activer_client(user_id):
         flash(f"Le compte de {user.nom_entreprise} a été activé !", "success")
     return redirect(url_for('admin_secret'))
 
-
 # ==============================================================
-# 🚨 CORRECTION ULTIME : MISE A JOUR DE LA BASE DE DONNÉES 🚨
+# MISE A JOUR DE LA BASE DE DONNÉES (Colonnes Apify)
 # ==============================================================
 with app.app_context():
     db.create_all()
-    
-    # On utilise une commande SQL brute pour ajouter les colonnes si elles n'existent pas.
-    # C'est la seule façon de faire sans perdre tes données.
     try:
         db.session.execute(db.text('ALTER TABLE utilisateur ADD COLUMN sync_count INTEGER DEFAULT 0;'))
         db.session.execute(db.text('ALTER TABLE utilisateur ADD COLUMN sync_date DATE;'))
         db.session.commit()
-        print("✅ Colonnes sync_count et sync_date ajoutées avec succès.")
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        # Si les colonnes existent déjà, ça va planter ici, mais ce n'est pas grave
-        pass
 
 if __name__ == '__main__':
     app.run(debug=True)
