@@ -6,4 +6,4 @@ pollinations-client
 reportlab
 requests
 gunicorn
-psycopg2-binary
+psycopg[binary]
