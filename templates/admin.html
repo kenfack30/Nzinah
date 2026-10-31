@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - ReputationPro</title>
+    <title>Admin - Nzinah</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -42,15 +42,16 @@
             </form>
         </div>
 
-        <!-- LISTE DES CLIENTS A ACTIVER -->
-        <h2 style="margin-bottom: 20px;">Gestion des clients</h2>
+        <!-- LISTE DES CLIENTS -->
+        <h2 style="margin-bottom: 20px;">Gestion des clients et des paiements</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <thead>
                 <tr style="background: #111827; color: white; text-align: left;">
                     <th style="padding: 15px;">Entreprise</th>
                     <th style="padding: 15px;">Téléphone</th>
                     <th style="padding: 15px;">Code Utilisé</th>
-                    <th style="padding: 15px;">Montant à Payer</th>
+                    <th style="padding: 15px;">Montant Attendu</th>
+                    <th style="padding: 15px;">Statut / Jours Restants</th>
                     <th style="padding: 15px;">Action</th>
                 </tr>
             </thead>
@@ -66,10 +67,20 @@
                         {{ user.prix_a_payer }} FCFA
                     </td>
                     <td style="padding: 15px;">
+                        {% if user.plan == 'Premium' %}
+                            <span style="background: #d1fae5; color: #065f46; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;">✅ Payé (Premium)</span>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">Expire le : {{ user.date_expiration.strftime('%d/%m/%Y') }}</div>
+                        {% else %}
+                            {% set jours = user.jours_restants() %}
+                            <span style="background: #fef3c7; color: #92400e; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;">⏳ Essai gratuit</span>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">Il reste {{ jours }} jour(s)</div>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px;">
                         {% if user.plan != 'Premium' %}
                         <a href="{{ url_for('activer_client', user_id=user.id) }}" style="background: #3b82f6; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px;">Activer 30j</a>
                         {% else %}
-                        <span style="color: #10b981; font-weight: bold;">✅ Actif</span>
+                        <span style="color: #10b981; font-weight: bold; font-size: 14px;">Actif</span>
                         {% endif %}
                     </td>
                 </tr>
