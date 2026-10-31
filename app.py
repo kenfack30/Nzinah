@@ -43,8 +43,6 @@ URL_API_SMS = "https://api.smsmobileapi.com/sendsms/"
 CLE_API_POLLINATIONS = "sk_ZVxmfVqjO01Tm3Hxq67UcrXFZCQmasOm"
 EMAIL_ADMIN = "jsongtama@gmail.com" 
 PRIX_BASE = 10000
-
-# ⚠️ TA CLÉ APIFY
 TOKEN_APIFY = "apify_api_QaViakKtCu50tZaS70yNtZqhpRjT7CC2RUUpg"
 # ==============================================================
 
@@ -69,7 +67,6 @@ class Utilisateur(UserMixin, db.Model):
     code_promo = db.Column(db.String(50), nullable=True)
     prix_a_payer = db.Column(db.Integer, default=PRIX_BASE)
     
-    # NOUVEAU : Pour limiter les synchronisations Google
     sync_count = db.Column(db.Integer, default=0)
     sync_date = db.Column(db.Date, default=date.today)
 
@@ -319,92 +316,63 @@ def rapport_pdf():
     buffer.seek(0)
     return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=f'Rapport_{current_user.nom_entreprise}.pdf')
 
-# ==============================================================
-# SYNCHRONISATION APIFY (AVEC LIMITE DE REQUETES)
-# ==============================================================
 @app.route('/synchroniser-google')
 @login_required
 def synchroniser_google():
-    # 1. Vérification de la limite quotidienne
     aujourd_hui = date.today()
-    
-    # Si on change de jour, on remet le compteur à zéro
     if current_user.sync_date != aujourd_hui:
         current_user.sync_date = aujourd_hui
         current_user.sync_count = 0
         db.session.commit()
 
-    # Définition de la limite (3 pour l'essai, 10 pour le premium)
     limite = 10 if current_user.plan == 'Premium' else 3
-    
     if current_user.sync_count >= limite:
-        flash(f"Vous avez atteint votre limite de {limite} synchronisations par jour. Réessayez demain.", "error")
+        flash(f"Vous avez atteint votre limite de {limite} synchronisations par jour.", "error")
         return redirect(url_for('importer'))
 
-    # 2. Lancement de la synchro
     nom_entreprise = current_user.nom_entreprise
     url = "https://api.apify.com/v2/acts/compass~crawler-google-places/run-sync-get-dataset-items"
-    
     headers = {"Authorization": f"Bearer {TOKEN_APIFY}"}
     payload = {
         "searchStringsArray": [nom_entreprise],
         "locationQuery": "Cameroun", 
-        "maxReviews": 20, # On limite à 20 avis par synchro pour économiser ton crédit
+        "maxReviews": 20,
         "language": "fr",
         "reviewsSort": "newest"
     }
     
     try:
-        flash("Synchronisation avec Google en cours... Veuillez patienter (environ 20 sec).", "success")
+        flash("Synchronisation avec Google en cours... Veuillez patienter.", "success")
         response = requests.post(url, headers=headers, json=payload, timeout=60)
         
         if response.status_code in [200, 201]:
             data = response.json()
-            compteur = 0
-            
-            # Si Apify ne trouve rien
             if not data or (isinstance(data, list) and len(data) == 0):
-                flash("❌ Restaurant introuvable sur Google. Vérifiez le nom de votre entreprise dans les Paramètres.", "error")
+                flash("❌ Restaurant introuvable. Vérifiez votre nom d'entreprise dans les Paramètres.", "error")
                 return redirect(url_for('importer'))
 
+            compteur = 0
             for lieu in data:
                 if 'reviews' in lieu:
                     for avis in lieu['reviews']:
-                        existe = Avis.query.filter_by(
-                            client=avis.get('name', 'Client Google'),
-                            texte=avis.get('text', ''),
-                            user_id=current_user.id
-                        ).first()
-                        
+                        existe = Avis.query.filter_by(client=avis.get('name', 'Client Google'), texte=avis.get('text', ''), user_id=current_user.id).first()
                         if not existe:
-                            nouvel_avis = Avis(
-                                client=avis.get('name', 'Client Google'),
-                                plateforme="Google",
-                                note=avis.get('stars', 5),
-                                texte=avis.get('text', ''),
-                                user_id=current_user.id
-                            )
+                            nouvel_avis = Avis(client=avis.get('name', 'Client Google'), plateforme="Google", note=avis.get('stars', 5), texte=avis.get('text', ''), user_id=current_user.id)
                             db.session.add(nouvel_avis)
                             compteur += 1
             
-            # On incrémente le compteur de requêtes
             current_user.sync_count += 1
             db.session.commit()
             
-            if compteur > 0:
-                flash(f"✅ {compteur} nouveaux avis importés depuis Google !", "success")
-            else:
-                flash("Aucun nouvel avis à importer (vous êtes à jour).", "success")
-                
+            if compteur > 0: flash(f"✅ {compteur} nouveaux avis importés depuis Google !", "success")
+            else: flash("Aucun nouvel avis à importer.", "success")
         else:
-            flash(f"❌ Erreur Apify : {response.status_code}. Vérifiez votre connexion.", "error")
-            
+            flash(f"❌ Erreur Apify : {response.status_code}", "error")
     except Exception as e:
-        flash(f"❌ Erreur de connexion à Apify : {e}", "error")
+        flash(f"❌ Erreur de connexion : {e}", "error")
         
     return redirect(url_for('importer'))
 
-# --- ROUTES ADMIN ---
 @app.route('/admin-secret', methods=['GET', 'POST'])
 @login_required
 def admin_secret():
@@ -416,7 +384,6 @@ def admin_secret():
         nouveau_code = request.form['code'].strip().upper()
         reduction = int(request.form['reduction'])
         partenaire = request.form['partenaire']
-        
         if not CodePromo.query.filter_by(code=nouveau_code).first():
             promo = CodePromo(code=nouveau_code, reduction=reduction, nom_partenaire=partenaire)
             db.session.add(promo)
@@ -433,8 +400,7 @@ def admin_secret():
 @app.route('/activer-client/<int:user_id>')
 @login_required
 def activer_client(user_id):
-    if current_user.email != EMAIL_ADMIN:
-        return redirect(url_for('accueil'))
+    if current_user.email != EMAIL_ADMIN: return redirect(url_for('accueil'))
     user = Utilisateur.query.get(user_id)
     if user:
         user.plan = 'Premium'
@@ -443,11 +409,24 @@ def activer_client(user_id):
         flash(f"Le compte de {user.nom_entreprise} a été activé !", "success")
     return redirect(url_for('admin_secret'))
 
+
 # ==============================================================
-# CREATION DES TABLES
+# 🚨 CORRECTION ULTIME : MISE A JOUR DE LA BASE DE DONNÉES 🚨
 # ==============================================================
 with app.app_context():
     db.create_all()
+    
+    # On utilise une commande SQL brute pour ajouter les colonnes si elles n'existent pas.
+    # C'est la seule façon de faire sans perdre tes données.
+    try:
+        db.session.execute(db.text('ALTER TABLE utilisateur ADD COLUMN sync_count INTEGER DEFAULT 0;'))
+        db.session.execute(db.text('ALTER TABLE utilisateur ADD COLUMN sync_date DATE;'))
+        db.session.commit()
+        print("✅ Colonnes sync_count et sync_date ajoutées avec succès.")
+    except Exception as e:
+        db.session.rollback()
+        # Si les colonnes existent déjà, ça va planter ici, mais ce n'est pas grave
+        pass
 
 if __name__ == '__main__':
     app.run(debug=True)
