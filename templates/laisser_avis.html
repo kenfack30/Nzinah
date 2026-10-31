@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laissez-nous un avis - {{ nom_entreprise }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: #111827; font-size: 24px; margin-bottom: 10px; }
+        p { color: #6b7280; margin-bottom: 25px; font-size: 15px; }
+        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; font-size: 16px; font-family: inherit; }
+        textarea { resize: vertical; }
+        button { width: 100%; padding: 14px; background-color: #10b981; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background-color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Votre avis compte pour {{ nom_entreprise }} !</h1>
+        <p>Merci de prendre quelques secondes pour nous noter.</p>
+        <form method="POST">
+            <input type="text" name="nom_client" placeholder="Votre nom" required>
+            <select name="note" required>
+                <option value="">-- Choisissez une note --</option>
+                <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                <option value="4">⭐⭐⭐⭐ Très bien</option>
+                <option value="3">⭐⭐⭐ Bien</option>
+                <option value="2">⭐⭐ Moyen</option>
+                <option value="1">⭐ Mauvais</option>
+            </select>
+            <textarea name="texte" rows="4" placeholder="Dites-nous ce que vous avez pensé de notre service..." required></textarea>
+            <button type="submit">Envoyer mon avis</button>
+        </form>
+    </div>
+</body>
+</html>
