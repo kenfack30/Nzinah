@@ -7,18 +7,12 @@
 </head>
 <body>
     <div class="sidebar">
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 45px; height: 45px; object-fit: contain;">
-            <div>
-                <h2 style="color: #10b981; font-size: 22px; margin: 0; font-weight: 800; line-height: 1;">Nzinah</h2>
-                <p style="color: #6b7280; font-size: 10px; margin: 0; margin-top: 3px;">L'Excellence de votre Réputation</p>
-            </div>
-        </div>
-        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold; padding-left: 60px;">{{ current_user.nom_entreprise }}</div>
+        <h2>Nzinah</h2>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold;">{{ current_user.nom_entreprise }}</div>
+        
         <a href="{{ url_for('accueil') }}" class="active">📊 Tableau de bord</a>
         <a href="{{ url_for('tous_les_avis') }}">⭐ Tous les avis</a>
-        <a href="{{ url_for('synchroniser_google') }}">🔍 Synchroniser Google</a>
-        <a href="{{ url_for('importer') }}">📥 Importer CSV</a>
+        <a href="{{ url_for('importer') }}">📥 Importer des avis</a>
         <a href="{{ url_for('widget') }}">🌐 Widget Site Web</a>
         <a href="{{ url_for('abonnement') }}">💳 Abonnement</a>
         <a href="{{ url_for('parametres') }}">⚙️ Paramètres</a>
@@ -28,20 +22,11 @@
     <div class="main-content">
         {% if current_user.plan == 'Gratuit' %}
             {% set jours = current_user.jours_restants() %}
-            <div style="background-color: {% if jours <= 3 %}#fee2e2{% else %}#fef3c7{% endif %}; border: 2px solid {% if jours <= 3 %}#ef4444{% else %}#f59e0b{% endif %}; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <p style="margin: 0; font-size: 18px; font-weight: bold; color: {% if jours <= 3 %}#991b1b{% else %}#92400e{% endif %};">
-                        ⏳ Il vous reste <strong>{{ jours }} jours</strong> d'essai.
-                    </p>
-                    {% if jours <= 3 %}
-                    <p style="margin: 5px 0 0 0; color: #991b1b; font-size: 14px;">
-                        Attention ! Votre compte sera bientôt bloqué. Abonnez-vous maintenant.
-                    </p>
-                    {% endif %}
-                </div>
-                <a href="{{ url_for('abonnement') }}" style="background-color: {% if jours <= 3 %}#ef4444{% else %}#f59e0b{% endif %}; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">
-                    Choisir un plan
-                </a>
+            <div style="background-color: {% if jours <= 3 %}#fee2e2{% else %}#fef3c7{% endif %}; border: 1px solid {% if jours <= 3 %}#ef4444{% else %}#f59e0b{% endif %}; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <p style="margin: 0; font-weight: bold; color: {% if jours <= 3 %}#991b1b{% else %}#92400e{% endif %};">
+                    ⏳ Il vous reste <strong>{{ jours }} jours</strong> d'essai gratuit.
+                </p>
+                <a href="{{ url_for('abonnement') }}" style="background-color: {% if jours <= 3 %}#ef4444{% else %}#f59e0b{% endif %}; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold;">Choisir un plan</a>
             </div>
         {% else %}
             <div style="background-color: #d1fae5; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -50,15 +35,6 @@
                 </p>
             </div>
         {% endif %}
-
-        <div style="background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
-            <p style="margin: 0; color: #374151; font-weight: 600;">
-                🔍 Synchronisations Google restantes :
-            </p>
-            <div style="font-size: 18px; font-weight: bold; color: {% if 10 - current_user.recherches_google <= 3 %}#ef4444{% else %}#10b981{% endif %};">
-                {{ 10 - current_user.recherches_google }} / 10
-            </div>
-        </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -113,14 +89,7 @@
             <p class="review-text">"{{ avis.texte }}"</p>
             
             {% if avis.reponse %}
-            <div class="review-reply" style="position: relative;">
-                <strong>Réponse de l'entreprise :</strong> 
-                <p id="reponse-{{ avis.id }}" style="margin-top: 5px;">{{ avis.reponse }}</p>
-                
-                <button onclick="copierTexte('reponse-{{ avis.id }}')" style="margin-top: 10px; background-color: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
-                    📋 Copier la réponse
-                </button>
-            </div>
+            <div class="review-reply"><strong>Réponse de l'entreprise :</strong> {{ avis.reponse }}</div>
             {% else %}
             <form method="POST" class="reply-form" style="display: flex; gap: 10px; align-items: center;">
                 <input type="hidden" name="avis_id" value="{{ avis.id }}">
@@ -135,17 +104,5 @@
         <p style="color: #6b7280; text-align: center; margin-top: 50px;">Aucun avis pour le moment. Allez dans "Importer des avis".</p>
         {% endfor %}
     </div>
-    
-    <script>
-        function copierTexte(idElement) {
-            var texte = document.getElementById(idElement).innerText;
-            
-            navigator.clipboard.writeText(texte).then(function() {
-                alert("✅ Réponse copiée ! Vous pouvez maintenant la coller sur Google.");
-            }, function(err) {
-                alert("❌ Erreur lors de la copie.");
-            });
-        }
-    </script>
 </body>
 </html>
