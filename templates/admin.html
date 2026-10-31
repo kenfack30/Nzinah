@@ -6,14 +6,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="sidebar">
-        <h2>ReputationPro (Admin)</h2>
-        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold;">{{ current_user.nom_entreprise }}</div>
-        <a href="{{ url_for('accueil') }}">📊 Retour au site</a>
-        <a href="{{ url_for('logout') }}" style="margin-top: auto; color: #ef4444;">🚪 Déconnexion</a>
-    </div>
+    <div class="main-content" style="padding: 40px; width: 100%;">
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Espace Admin</h1>
+            <a href="{{ url_for('accueil') }}" class="btn-primary" style="text-decoration: none;">Retour au site</a>
+        </div>
 
-    <div class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
@@ -24,75 +22,83 @@
           {% endif %}
         {% endwith %}
 
-        <div class="header">
-            <h1>Panneau d'administration</h1>
+        <!-- FORMULAIRE DE CREATION DE CODE PROMO -->
+        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 40px; border: 1px solid #e5e7eb;">
+            <h2 style="margin-bottom: 20px;">Créer un code pour un Partenaire d'affiliation</h2>
+            <form method="POST" style="display: flex; gap: 15px; align-items: flex-end;">
+                <div>
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Nom du partenaire</label>
+                    <input type="text" name="partenaire" placeholder="Ex: Restaurant Le Bon" required style="padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; width: 200px;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Code Promo</label>
+                    <input type="text" name="code" placeholder="Ex: BON10" required style="padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; text-transform: uppercase;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Réduction (FCFA)</label>
+                    <input type="number" name="reduction" placeholder="Ex: 1000" required style="padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; width: 150px;">
+                </div>
+                <button type="submit" class="btn-primary" style="padding: 10px 20px;">Créer le code</button>
+            </form>
         </div>
 
-        <!-- TABLEAU 1 : LES CLIENTS PREMIUM -->
-        <h2 style="margin-top: 30px; margin-bottom: 15px; color: #10b981; font-size: 22px;">⭐ Clients Premium (Abonnés)</h2>
-        <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; overflow: hidden; margin-bottom: 40px;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead>
-                    <tr style="background: #f0fdf4; border-bottom: 1px solid #e5e7eb;">
-                        <th style="padding: 15px; color: #065f46;">Entreprise</th>
-                        <th style="padding: 15px; color: #065f46;">Email</th>
-                        <th style="padding: 15px; color: #065f46;">Téléphone</th>
-                        <th style="padding: 15px; color: #065f46;">Expire le</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for client in clients_premium %}
-                    <tr style="border-bottom: 1px solid #e5e7eb;">
-                        <td style="padding: 15px; font-weight: 600;">{{ client.nom_entreprise }}</td>
-                        <td style="padding: 15px; color: #6b7280;">{{ client.email }}</td>
-                        <td style="padding: 15px; color: #6b7280;">{{ client.telephone }}</td>
-                        <td style="padding: 15px; color: #065f46; font-weight: bold;">{{ client.date_expiration.strftime('%d/%m/%Y') }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="4" style="padding: 30px; text-align: center; color: #6b7280;">Aucun client Premium pour le moment.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <!-- LISTE DES CLIENTS A ACTIVER -->
+        <h2 style="margin-bottom: 20px;">Gestion des clients</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <thead>
+                <tr style="background: #111827; color: white; text-align: left;">
+                    <th style="padding: 15px;">Entreprise</th>
+                    <th style="padding: 15px;">Téléphone</th>
+                    <th style="padding: 15px;">Code Utilisé</th>
+                    <th style="padding: 15px;">Montant à Payer</th>
+                    <th style="padding: 15px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in utilisateurs %}
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 15px; font-weight: bold;">{{ user.nom_entreprise }}</td>
+                    <td style="padding: 15px;">{{ user.telephone }}</td>
+                    <td style="padding: 15px; color: {% if user.code_promo %}#ef4444{% else %}#6b7280{% endif %}; font-weight: bold;">
+                        {{ user.code_promo or '-' }}
+                    </td>
+                    <td style="padding: 15px; font-weight: bold; color: #10b981;">
+                        {{ user.prix_a_payer }} FCFA
+                    </td>
+                    <td style="padding: 15px;">
+                        {% if user.plan != 'Premium' %}
+                        <a href="{{ url_for('activer_client', user_id=user.id) }}" style="background: #3b82f6; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px;">Activer 30j</a>
+                        {% else %}
+                        <span style="color: #10b981; font-weight: bold;">✅ Actif</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-        <!-- TABLEAU 2 : LES CLIENTS EN ESSAI GRATUIT -->
-        <h2 style="margin-bottom: 15px; color: #f59e0b; font-size: 22px;">⏳ Clients en Essai Gratuit</h2>
-        <p style="color: #4b5563; margin-bottom: 15px;">Dès qu'un client vous paie par Mobile Money, cliquez sur "Activer Premium" pour lui donner 30 jours d'accès.</p>
-        
-        <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead>
-                    <tr style="background: #fef3c7; border-bottom: 1px solid #e5e7eb;">
-                        <th style="padding: 15px; color: #92400e;">Entreprise</th>
-                        <th style="padding: 15px; color: #92400e;">Email</th>
-                        <th style="padding: 15px; color: #92400e;">Téléphone</th>
-                        <th style="padding: 15px; color: #92400e;">Jours restants</th>
-                        <th style="padding: 15px; color: #92400e;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for client in clients_gratuits %}
-                    <tr style="border-bottom: 1px solid #e5e7eb;">
-                        <td style="padding: 15px; font-weight: 600;">{{ client.nom_entreprise }}</td>
-                        <td style="padding: 15px; color: #6b7280;">{{ client.email }}</td>
-                        <td style="padding: 15px; color: #6b7280;">{{ client.telephone }}</td>
-                        <td style="padding: 15px; color: #ef4444; font-weight: bold;">{{ client.jours_restants() }} j</td>
-                        <td style="padding: 15px;">
-                            <a href="{{ url_for('activer_premium', user_id=client.id) }}" style="background-color: #10b981; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold;" onclick="return confirm('Confirmer le paiement reçu pour ce client ?');">
-                                Activer Premium
-                            </a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" style="padding: 30px; text-align: center; color: #6b7280;">Aucun client en essai gratuit pour le moment.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <!-- LISTE DES CODES PROMO CREES -->
+        <h2 style="margin-bottom: 20px;">Mes codes promo actifs</h2>
+        <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <thead>
+                <tr style="background: #10b981; color: white; text-align: left;">
+                    <th style="padding: 15px;">Code</th>
+                    <th style="padding: 15px;">Partenaire</th>
+                    <th style="padding: 15px;">Réduction</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promo in codes_promo %}
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 15px; font-weight: bold;">{{ promo.code }}</td>
+                    <td style="padding: 15px;">{{ promo.nom_partenaire }}</td>
+                    <td style="padding: 15px; color: #ef4444;">-{{ promo.reduction }} FCFA</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #6b7280;">Aucun code promo pour l'instant.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>
