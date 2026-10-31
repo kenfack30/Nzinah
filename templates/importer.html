@@ -34,15 +34,27 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <!-- OPTION SYNCHRO GOOGLE -->
             <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
-                <h3 style="margin-bottom: 10px; color: #111827;">Connexion automatique</h3>
-                <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Synchronisez vos comptes en 1 clic. (Bientôt disponible)</p>
-                <!-- Le bouton dangereux a été supprimé ici -->
-                <button class="btn-primary" style="display: block; width: 100%; text-align: center; background-color: #9ca3af; cursor: not-allowed;" disabled>Connecter Google (Bientôt)</button>
+                <h3 style="margin-bottom: 10px; color: #111827;">Synchronisation Google</h3>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Récupérez automatiquement vos avis Google Maps.</p>
+                
+                <div style="background: #fef3c7; color: #92400e; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 20px; font-weight: bold;">
+                    ⚠️ Recherche basée sur votre nom d'entreprise. Modifiez-le dans les Paramètres si besoin.
+                </div>
+
+                <a href="{{ url_for('synchroniser_google') }}" class="btn-primary" style="display: block; text-align: center; background-color: #ea4335; text-decoration: none; padding: 12px; color: white; border-radius: 8px; font-weight: bold;">
+                    🔍 Synchroniser mes avis Google
+                </a>
+                
+                <p style="font-size: 12px; color: #9ca3af; margin-top: 10px; text-align: center;">
+                    Limite : 3 fois par jour (Essai) / 10 fois (Premium)
+                </p>
             </div>
 
+            <!-- OPTION CSV -->
             <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
-                <h3 style="margin-bottom: 10px; color: #111827;">Importer un fichier</h3>
+                <h3 style="margin-bottom: 10px; color: #111827;">Importer un fichier CSV</h3>
                 <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Format CSV : Nom, Plateforme, Note, Texte.</p>
                 <form method="POST" enctype="multipart/form-data">
                     <div class="form-group" style="margin-bottom: 15px;">
