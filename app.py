@@ -226,7 +226,6 @@ def tous_les_avis():
     avis = Avis.query.filter_by(user_id=current_user.id).order_by(Avis.id.desc()).all()
     return render_template('tous_les_avis.html', avis=avis)
 
-# --- IMPORTATION EN ARRIÈRE-PLAN ---
 @app.route('/importer', methods=['GET', 'POST'])
 @login_required
 def importer():
@@ -380,9 +379,6 @@ def synchroniser_google():
         flash(f"❌ Erreur de connexion : {e}", "error")
     return redirect(url_for('importer'))
 
-# ==============================================================
-# LIEN MAGIQUE (Formulaire public pour les clients)
-# ==============================================================
 @app.route('/laisser-avis/<int:user_id>', methods=['GET', 'POST'])
 def laisser_avis(user_id):
     user = Utilisateur.query.get(user_id)
@@ -439,9 +435,6 @@ def activer_client(user_id):
         flash(f"Le compte de {user.nom_entreprise} a été activé !", "success")
     return redirect(url_for('admin_secret'))
 
-# ==============================================================
-# MISE A JOUR DE LA BASE DE DONNÉES
-# ==============================================================
 with app.app_context():
     db.create_all()
     try:
