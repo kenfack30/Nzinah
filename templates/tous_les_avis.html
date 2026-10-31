@@ -7,18 +7,11 @@
 </head>
 <body>
     <div class="sidebar">
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 45px; height: 45px; object-fit: contain;">
-            <div>
-                <h2 style="color: #10b981; font-size: 22px; margin: 0; font-weight: 800; line-height: 1;">Nzinah</h2>
-                <p style="color: #6b7280; font-size: 10px; margin: 0; margin-top: 3px;">L'Excellence de votre Réputation</p>
-            </div>
-        </div>
-        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold; padding-left: 60px;">{{ current_user.nom_entreprise }}</div>
+        <h2>Nzinah</h2>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold;">{{ current_user.nom_entreprise }}</div>
         <a href="{{ url_for('accueil') }}">📊 Tableau de bord</a>
         <a href="{{ url_for('tous_les_avis') }}" class="active">⭐ Tous les avis</a>
-        <a href="{{ url_for('synchroniser_google') }}">🔍 Synchroniser Google</a>
-        <a href="{{ url_for('importer') }}">📥 Importer CSV</a>
+        <a href="{{ url_for('importer') }}">📥 Importer des avis</a>
         <a href="{{ url_for('widget') }}">🌐 Widget Site Web</a>
         <a href="{{ url_for('abonnement') }}">💳 Abonnement</a>
         <a href="{{ url_for('parametres') }}">⚙️ Paramètres</a>
@@ -59,14 +52,7 @@
             <p class="review-text">"{{ avis.texte }}"</p>
             
             {% if avis.reponse %}
-            <div class="review-reply" style="position: relative;">
-                <strong>Réponse de l'entreprise :</strong> 
-                <p id="reponse-all-{{ avis.id }}" style="margin-top: 5px;">{{ avis.reponse }}</p>
-                
-                <button onclick="copierTexte('reponse-all-{{ avis.id }}')" style="margin-top: 10px; background-color: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
-                    📋 Copier la réponse
-                </button>
-            </div>
+            <div class="review-reply"><strong>Réponse de l'entreprise :</strong> {{ avis.reponse }}</div>
             {% else %}
             <form method="POST" action="{{ url_for('accueil') }}" class="reply-form" style="display: flex; gap: 10px; align-items: center;">
                 <input type="hidden" name="avis_id" value="{{ avis.id }}">
@@ -81,17 +67,5 @@
         <p style="color: #6b7280; text-align: center; margin-top: 50px;">Aucun avis pour le moment.</p>
         {% endfor %}
     </div>
-
-    <script>
-        function copierTexte(idElement) {
-            var texte = document.getElementById(idElement).innerText;
-            
-            navigator.clipboard.writeText(texte).then(function() {
-                alert("✅ Réponse copiée ! Vous pouvez maintenant la coller sur Google.");
-            }, function(err) {
-                alert("❌ Erreur lors de la copie.");
-            });
-        }
-    </script>
 </body>
 </html>
