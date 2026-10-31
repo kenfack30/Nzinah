@@ -15,7 +15,7 @@ from pollinations import Pollinations
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
-import threading # NOUVEAU : Pour l'import en arrière-plan
+import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
@@ -180,7 +180,8 @@ def accueil():
 
     if request.method == 'POST':
         if 'repondre' in request.form:
-            avis_id = request.form['avis_id']
+            # ⚠️ CORRECTION ICI : On ajoute int()
+            avis_id = int(request.form['avis_id'])
             texte_reponse = request.form.get('texte_reponse', '').strip()
             if texte_reponse:
                 avis_a_modifier = Avis.query.filter_by(id=avis_id, user_id=current_user.id).first()
@@ -188,8 +189,10 @@ def accueil():
                     avis_a_modifier.reponse = texte_reponse
                     db.session.commit()
                     flash("Réponse publiée !", "success")
+                    
         elif 'generer_ia' in request.form:
-            avis_id = request.form['avis_id']
+            # ⚠️ CORRECTION ICI : On ajoute int()
+            avis_id = int(request.form['avis_id'])
             avis_a_modifier = Avis.query.filter_by(id=avis_id, user_id=current_user.id).first()
             if avis_a_modifier:
                 try:
@@ -200,19 +203,23 @@ def accueil():
                     flash("L'IA a généré une réponse !", "success")
                 except Exception:
                     flash("L'IA a eu un problème.", "error")
+                    
         elif 'supprimer_avis' in request.form:
-            avis_id = request.form['avis_id']
+            # ⚠️ CORRECTION ICI : On ajoute int()
+            avis_id = int(request.form['avis_id'])
             avis_a_supprimer = Avis.query.filter_by(id=avis_id, user_id=current_user.id).first()
             if avis_a_supprimer:
                 db.session.delete(avis_a_supprimer)
                 db.session.commit()
                 flash("Avis supprimé.", "success")
+            
         return redirect(url_for('accueil'))
 
     tous_les_avis = Avis.query.filter_by(user_id=current_user.id).order_by(Avis.id.desc()).limit(5).all()
     total_avis = Avis.query.filter_by(user_id=current_user.id).count()
     note_moyenne = db.session.query(func.avg(Avis.note)).filter(Avis.user_id == current_user.id).scalar() or 0
     avis_negatifs = Avis.query.filter(Avis.user_id == current_user.id, Avis.note <= 2).count()
+
     return render_template('index.html', avis=tous_les_avis, total=total_avis, moyenne=round(note_moyenne, 1), negatifs=avis_negatifs)
 
 @app.route('/tous-les-avis')
@@ -256,8 +263,7 @@ def importer():
             thread = threading.Thread(target=traiter_csv, args=(contenu, user_id, email_client, nom_entreprise))
             thread.start()
             
-            # ✨ LE MESSAGE EST ICI : On informe le client que c'est en cours
-            flash("✅ Votre fichier a bien été reçu ! L'importation se fait en arrière-plan. Patientez quelques secondes puis actualisez la page 'Tous les avis'.", "success")
+            flash("✅ Fichier reçu ! Importation en cours. Actualisez la page dans quelques secondes.", "success")
             return redirect(url_for('tous_les_avis'))
         else:
             flash('Format invalide. Utilisez un fichier .csv', "error")
