@@ -7,18 +7,11 @@
 </head>
 <body>
     <div class="sidebar">
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nzinah" style="width: 45px; height: 45px; object-fit: contain;">
-            <div>
-                <h2 style="color: #10b981; font-size: 22px; margin: 0; font-weight: 800; line-height: 1;">Nzinah</h2>
-                <p style="color: #6b7280; font-size: 10px; margin: 0; margin-top: 3px;">L'Excellence de votre Réputation</p>
-            </div>
-        </div>
-        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold; padding-left: 60px;">{{ current_user.nom_entreprise }}</div>
+        <h2>Nzinah</h2>
+        <div style="font-size: 12px; color: #10b981; margin-bottom: 20px; font-weight: bold;">{{ current_user.nom_entreprise }}</div>
         <a href="{{ url_for('accueil') }}">📊 Tableau de bord</a>
         <a href="{{ url_for('tous_les_avis') }}">⭐ Tous les avis</a>
-        <a href="{{ url_for('synchroniser_google') }}">🔍 Synchroniser Google</a>
-        <a href="{{ url_for('importer') }}">📥 Importer CSV</a>
+        <a href="{{ url_for('importer') }}">📥 Importer des avis</a>
         <a href="{{ url_for('widget') }}">🌐 Widget Site Web</a>
         <a href="{{ url_for('abonnement') }}" class="active">💳 Abonnement</a>
         <a href="{{ url_for('parametres') }}">⚙️ Paramètres</a>
@@ -29,53 +22,30 @@
         <div style="background: white; padding: 50px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; text-align: center; max-width: 600px; width: 100%;">
             
             <h1 style="font-size: 36px; margin-bottom: 10px; color: #111827;">Votre Réputation, Notre Priorité</h1>
-            <p style="color: #6b7280; font-size: 18px; margin-bottom: 40px;">Débloquez la puissance de Nzinah pour votre établissement.</p>
-
-            <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 40px; border-radius: 16px; margin-bottom: 30px;">
+            
+            <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 40px; border-radius: 16px; margin-bottom: 30px; margin-top: 30px;">
                 <h2 style="font-size: 24px; color: #065f46; margin-bottom: 10px;">Plan Unique Premium</h2>
-                <div style="font-size: 56px; font-weight: 800; color: #10b981; margin-bottom: 20px;">10 000 <span style="font-size: 20px; color: #6b7280; font-weight: normal;">FCFA / mois</span></div>
                 
-                <ul style="list-style: none; text-align: left; margin-bottom: 30px; display: inline-block;">
-                    <li style="padding: 10px 0; color: #065f46; font-size: 16px; border-bottom: 1px solid #d1fae5;"><strong>✅</strong> Avis illimités</li>
-                    <li style="padding: 10px 0; color: #065f46; font-size: 16px; border-bottom: 1px solid #d1fae5;"><strong>✅</strong> Synchronisations Google illimitées</li>
-                    <li style="padding: 10px 0; color: #065f46; font-size: 16px; border-bottom: 1px solid #d1fae5;"><strong>✅</strong> Réponses IA illimitées</li>
-                    <li style="padding: 10px 0; color: #065f46; font-size: 16px;"><strong>✅</strong> Alertes SMS automatiques</li>
-                </ul>
-
-                <!-- PAIEMENT MANUEL -->
-                <div style="background: white; border: 2px dashed #10b981; padding: 20px; border-radius: 12px; text-align: left; margin-top: 20px;">
-                    <h3 style="color: #065f46; margin-bottom: 15px; text-align: center;">💳 Comment payer ?</h3>
-                    
-                    <p style="color: #4b5563; font-size: 15px; margin-bottom: 15px; text-align: center;">
-                        <strong>1. Envoyez 10 000 FCFA par Mobile Money ou Carte bancaire :</strong>
-                    </p>
-
-                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="margin-bottom: 10px; font-weight: bold; color: #f59e0b;">📱 MTN Mobile Money :</p>
-                        <span style="font-size: 20px; color: #111827; font-weight: bold; display: block; letter-spacing: 1px;">675 487 256</span>
-                    </div>
-
-                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="margin-bottom: 10px; font-weight: bold; color: #ff6600;">📱 Orange Money :</p>
-                        <span style="font-size: 20px; color: #111827; font-weight: bold; display: block; letter-spacing: 1px;">695 468 238</span>
-                    </div>
-
-                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="margin-bottom: 10px; font-weight: bold; color: #1a1f71;">💳 Carte Bancaire (Visa) :</p>
-                        <span style="font-size: 18px; color: #111827; font-weight: bold; display: block; letter-spacing: 1px;">4834 5600 6228 4200</span>
-                        <p style="font-size: 12px; color: #6b7280; margin-top: 5px;">(Virement bancaire uniquement)</p>
-                    </div>
-                    
-                    <p style="color: #4b5563; font-size: 15px; margin-bottom: 15px; margin-top: 20px;">
-                        <strong>2. Envoyez la capture d'écran</strong> du paiement sur WhatsApp au <strong>675 487 256</strong>.
-                    </p>
-                    
-                    <p style="color: #4b5563; font-size: 15px;">
-                        <strong>3. Votre compte sera activé manuellement</strong> dans les 5 minutes.
-                    </p>
+                <div style="font-size: 56px; font-weight: 800; color: #10b981; margin-bottom: 10px;">
+                    {% if current_user.prix_a_payer < 10000 %}
+                        <span style="text-decoration: line-through; color: #9ca3af; font-size: 30px;">10 000</span> 
+                    {% endif %}
+                    {{ current_user.prix_a_payer }} <span style="font-size: 20px; color: #6b7280; font-weight: normal;">FCFA / mois</span>
                 </div>
                 
-                <p style="font-size: 12px; color: #6b7280; margin-top: 15px;">Paiement sécurisé. Annulable à tout moment.</p>
+                {% if current_user.code_promo %}
+                <p style="color: #ef4444; font-weight: bold; margin-bottom: 20px;">🎉 Code promo '{{ current_user.code_promo }}' appliqué !</p>
+                {% endif %}
+                
+                <div style="background: #fffbeb; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; text-align: left; margin-top: 30px;">
+                    <h3 style="color: #92400e; margin-bottom: 10px;">💳 Comment payer ?</h3>
+                    <p style="color: #78350f; font-size: 15px; line-height: 1.6;">
+                        1. Envoyez <strong>{{ current_user.prix_a_payer }} FCFA</strong> au numéro suivant :<br>
+                        <strong style="font-size: 22px; color: #b45309;">+237 6XX XX XX XX</strong> (MTN ou Orange)<br><br>
+                        2. Envoyez la capture d'écran du paiement sur WhatsApp au même numéro.<br><br>
+                        3. Dès que nous recevons votre paiement, votre compte sera activé sous 1 heure !
+                    </p>
+                </div>
             </div>
 
             <div style="background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
