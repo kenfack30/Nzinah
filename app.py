@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import csv
 import io
 from io import BytesIO
@@ -21,8 +21,6 @@ app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
 # CONNEXION A LA BASE DE DONNÉES (RENDER / POSTGRESQL)
 # ==============================================================
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
-
-# On s'assure que l'URL utilise le bon pilote psycopg
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
 elif db_url.startswith("postgresql://"):
@@ -30,12 +28,7 @@ elif db_url.startswith("postgresql://"):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# CORRECTION POUR RENDER : Gestion des coupures de connexion
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True,
-    'pool_recycle': 300,
-}
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True, 'pool_recycle': 300}
 
 db = SQLAlchemy(app)
 
@@ -50,22 +43,10 @@ URL_API_SMS = "https://api.smsmobileapi.com/sendsms/"
 CLE_API_POLLINATIONS = "sk_ZVxmfVqjO01Tm3Hxq67UcrXFZCQmasOm"
 EMAIL_ADMIN = "jsongtama@gmail.com" 
 PRIX_BASE = 10000
+
+# ⚠️ TA CLÉ APIFY
+TOKEN_APIFY = "apify_api_QaViakKtCu50tZaS70yNtZqhpRjT7CC2RUUpg"
 # ==============================================================
-
-def envoyer_sms_palier(numero_telephone, nom_entreprise, total_avis):
-    if not numero_telephone: return
-    try:
-        numero_formate = numero_telephone.strip()
-        if not numero_formate.startswith('+'):
-            if numero_formate.startswith('6'): numero_formate = '+237' + numero_formate
-            else: numero_formate = '+' + numero_formate
-
-        message = f"ReputationPro : Bonjour {nom_entreprise}, vous venez d'atteindre {total_avis} avis !"
-        payload = {'apikey': CLE_API_SMS, 'recipients': numero_formate, 'message': message}
-        response = requests.post(URL_API_SMS, data=payload, timeout=10)
-        print(f"SMS API Response: {response.text}")
-    except Exception as e:
-        print(f"❌ Erreur SMS : {e}")
 
 # --- BASE DE DONNÉES ---
 class CodePromo(db.Model):
@@ -87,6 +68,10 @@ class Utilisateur(UserMixin, db.Model):
     
     code_promo = db.Column(db.String(50), nullable=True)
     prix_a_payer = db.Column(db.Integer, default=PRIX_BASE)
+    
+    # NOUVEAU : Pour limiter les synchronisations Google
+    sync_count = db.Column(db.Integer, default=0)
+    sync_date = db.Column(db.Date, default=date.today)
 
     def jours_restants(self):
         if self.plan == 'Premium': return None
@@ -150,7 +135,7 @@ def inscription():
         login_user(nouvel_user)
         
         if prix_final < PRIX_BASE:
-            flash(f"Bienvenue ! Votre code promo a été appliqué. Vous paierez {prix_final} FCFA.", "success")
+            flash(f"Bienvenue ! Code promo appliqué. Vous paierez {prix_final} FCFA.", "success")
         else:
             flash("Bienvenue ! Votre essai de 14 jours a commencé.", "success")
             
@@ -249,12 +234,6 @@ def importer():
                         compteur += 1
                     except: pass
             db.session.commit()
-            
-            total_avis_apres = Avis.query.filter_by(user_id=current_user.id).count()
-            total_avis_avant = total_avis_apres - compteur
-            if total_avis_apres // 30 > total_avis_avant // 30:
-                envoyer_sms_palier(current_user.telephone, current_user.nom_entreprise, total_avis_apres)
-
             flash(f'{compteur} avis importés !', "success")
             return redirect(url_for('tous_les_avis'))
         else:
@@ -323,7 +302,7 @@ def rapport_pdf():
     width, height = A4
     p.setFont("Helvetica-Bold", 24)
     p.setFillColorRGB(0.06, 0.72, 0.51)
-    p.drawString(2*cm, height - 3*cm, "ReputationPro")
+    p.drawString(2*cm, height - 3*cm, "Nzinah")
     p.setFont("Helvetica-Oblique", 14)
     p.setFillColorRGB(0.4, 0.4, 0.4)
     p.drawString(2*cm, height - 4*cm, f"Rapport - {current_user.nom_entreprise}")
@@ -339,6 +318,91 @@ def rapport_pdf():
     p.save()
     buffer.seek(0)
     return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=f'Rapport_{current_user.nom_entreprise}.pdf')
+
+# ==============================================================
+# SYNCHRONISATION APIFY (AVEC LIMITE DE REQUETES)
+# ==============================================================
+@app.route('/synchroniser-google')
+@login_required
+def synchroniser_google():
+    # 1. Vérification de la limite quotidienne
+    aujourd_hui = date.today()
+    
+    # Si on change de jour, on remet le compteur à zéro
+    if current_user.sync_date != aujourd_hui:
+        current_user.sync_date = aujourd_hui
+        current_user.sync_count = 0
+        db.session.commit()
+
+    # Définition de la limite (3 pour l'essai, 10 pour le premium)
+    limite = 10 if current_user.plan == 'Premium' else 3
+    
+    if current_user.sync_count >= limite:
+        flash(f"Vous avez atteint votre limite de {limite} synchronisations par jour. Réessayez demain.", "error")
+        return redirect(url_for('importer'))
+
+    # 2. Lancement de la synchro
+    nom_entreprise = current_user.nom_entreprise
+    url = "https://api.apify.com/v2/acts/compass~crawler-google-places/run-sync-get-dataset-items"
+    
+    headers = {"Authorization": f"Bearer {TOKEN_APIFY}"}
+    payload = {
+        "searchStringsArray": [nom_entreprise],
+        "locationQuery": "Cameroun", 
+        "maxReviews": 20, # On limite à 20 avis par synchro pour économiser ton crédit
+        "language": "fr",
+        "reviewsSort": "newest"
+    }
+    
+    try:
+        flash("Synchronisation avec Google en cours... Veuillez patienter (environ 20 sec).", "success")
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        
+        if response.status_code in [200, 201]:
+            data = response.json()
+            compteur = 0
+            
+            # Si Apify ne trouve rien
+            if not data or (isinstance(data, list) and len(data) == 0):
+                flash("❌ Restaurant introuvable sur Google. Vérifiez le nom de votre entreprise dans les Paramètres.", "error")
+                return redirect(url_for('importer'))
+
+            for lieu in data:
+                if 'reviews' in lieu:
+                    for avis in lieu['reviews']:
+                        existe = Avis.query.filter_by(
+                            client=avis.get('name', 'Client Google'),
+                            texte=avis.get('text', ''),
+                            user_id=current_user.id
+                        ).first()
+                        
+                        if not existe:
+                            nouvel_avis = Avis(
+                                client=avis.get('name', 'Client Google'),
+                                plateforme="Google",
+                                note=avis.get('stars', 5),
+                                texte=avis.get('text', ''),
+                                user_id=current_user.id
+                            )
+                            db.session.add(nouvel_avis)
+                            compteur += 1
+            
+            # On incrémente le compteur de requêtes
+            current_user.sync_count += 1
+            db.session.commit()
+            
+            if compteur > 0:
+                flash(f"✅ {compteur} nouveaux avis importés depuis Google !", "success")
+            else:
+                flash("Aucun nouvel avis à importer (vous êtes à jour).", "success")
+                
+        else:
+            flash(f"❌ Erreur Apify : {response.status_code}. Vérifiez votre connexion.", "error")
+            
+    except Exception as e:
+        flash(f"❌ Erreur de connexion à Apify : {e}", "error")
+        
+    return redirect(url_for('importer'))
 
 # --- ROUTES ADMIN ---
 @app.route('/admin-secret', methods=['GET', 'POST'])
@@ -357,10 +421,9 @@ def admin_secret():
             promo = CodePromo(code=nouveau_code, reduction=reduction, nom_partenaire=partenaire)
             db.session.add(promo)
             db.session.commit()
-            flash(f"Code promo '{nouveau_code}' créé avec succès pour {partenaire} !", "success")
+            flash(f"Code promo '{nouveau_code}' créé !", "success")
         else:
             flash("Ce code promo existe déjà.", "error")
-            
         return redirect(url_for('admin_secret'))
 
     utilisateurs = Utilisateur.query.all()
@@ -381,7 +444,7 @@ def activer_client(user_id):
     return redirect(url_for('admin_secret'))
 
 # ==============================================================
-# CREATION DES TABLES (SANS SUPPRIMER LES ANCIENNES)
+# CREATION DES TABLES
 # ==============================================================
 with app.app_context():
     db.create_all()
