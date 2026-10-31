@@ -21,8 +21,13 @@ app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
 # CONNEXION A LA BASE DE DONNÉES (RENDER / POSTGRESQL)
 # ==============================================================
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
+
+# On s'assure que l'URL utilise le bon pilote psycopg
 if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -376,7 +381,7 @@ def activer_client(user_id):
     return redirect(url_for('admin_secret'))
 
 # ==============================================================
-# RECREATION DES TABLES (POUR PRENDRE EN COMPTE LES NOUVELLES COLONNES)
+# CREATION DES TABLES (SANS SUPPRIMER LES ANCIENNES)
 # ==============================================================
 with app.app_context():
     db.create_all()
