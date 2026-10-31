@@ -369,7 +369,9 @@ def activer_client(user_id):
         flash(f"Le compte de {user.nom_entreprise} a été activé !", "success")
     return redirect(url_for('admin_secret'))
 
-# --- CREATION DE LA BASE DE DONNÉES AU DEMARRAGE ---
+# ==============================================================
+# CREATION AUTOMATIQUE DES TABLES SUR RENDER
+# ==============================================================
 with app.app_context():
     db.create_all()
 
