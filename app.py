@@ -180,7 +180,6 @@ def accueil():
 
     if request.method == 'POST':
         if 'repondre' in request.form:
-            # ⚠️ CORRECTION ICI : On ajoute int()
             avis_id = int(request.form['avis_id'])
             texte_reponse = request.form.get('texte_reponse', '').strip()
             if texte_reponse:
@@ -191,7 +190,6 @@ def accueil():
                     flash("Réponse publiée !", "success")
                     
         elif 'generer_ia' in request.form:
-            # ⚠️ CORRECTION ICI : On ajoute int()
             avis_id = int(request.form['avis_id'])
             avis_a_modifier = Avis.query.filter_by(id=avis_id, user_id=current_user.id).first()
             if avis_a_modifier:
@@ -205,7 +203,6 @@ def accueil():
                     flash("L'IA a eu un problème.", "error")
                     
         elif 'supprimer_avis' in request.form:
-            # ⚠️ CORRECTION ICI : On ajoute int()
             avis_id = int(request.form['avis_id'])
             avis_a_supprimer = Avis.query.filter_by(id=avis_id, user_id=current_user.id).first()
             if avis_a_supprimer:
@@ -361,7 +358,7 @@ def synchroniser_google():
         if response.status_code in [200, 201]:
             data = response.json()
             if not data or (isinstance(data, list) and len(data) == 0):
-                flash("❌ Restaurant introuvable. Vérifiez le nom dans les Paramètres.", "error")
+                flash("❌ Établissement introuvable. Vérifiez votre nom dans les Paramètres.", "error")
                 return redirect(url_for('importer'))
             compteur = 0
             for lieu in data:
@@ -382,6 +379,31 @@ def synchroniser_google():
     except Exception as e:
         flash(f"❌ Erreur de connexion : {e}", "error")
     return redirect(url_for('importer'))
+
+# ==============================================================
+# LIEN MAGIQUE (Formulaire public pour les clients)
+# ==============================================================
+@app.route('/laisser-avis/<int:user_id>', methods=['GET', 'POST'])
+def laisser_avis(user_id):
+    user = Utilisateur.query.get(user_id)
+    if not user:
+        return "Cette page n'existe pas.", 404
+        
+    if request.method == 'POST':
+        nom_client = request.form['nom_client']
+        note = int(request.form['note'])
+        texte = request.form['texte']
+        
+        nouvel_avis = Avis(client=nom_client, plateforme="Lien Direct", note=note, texte=texte, user_id=user.id)
+        db.session.add(nouvel_avis)
+        db.session.commit()
+        
+        if note <= 2:
+            envoyer_alerte_bad_buzz(user.email, user.nom_entreprise, nom_client, note, texte)
+            
+        return render_template('merci_avis.html', nom_entreprise=user.nom_entreprise)
+        
+    return render_template('laisser_avis.html', nom_entreprise=user.nom_entreprise, user_id=user.id)
 
 @app.route('/admin-secret', methods=['GET', 'POST'])
 @login_required
