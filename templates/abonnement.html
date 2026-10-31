@@ -19,7 +19,7 @@
     </div>
 
     <div class="main-content" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
-        <div style="background: white; padding: 50px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; text-align: center; max-width: 600px; width: 100%;">
+        <div style="background: white; padding: 50px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; text-align: center; max-width: 650px; width: 100%;">
             
             <h1 style="font-size: 36px; margin-bottom: 10px; color: #111827;">Votre Réputation, Notre Priorité</h1>
             
@@ -38,13 +38,25 @@
                 {% endif %}
                 
                 <div style="background: #fffbeb; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; text-align: left; margin-top: 30px;">
-                    <h3 style="color: #92400e; margin-bottom: 10px;">💳 Comment payer ?</h3>
-                    <p style="color: #78350f; font-size: 15px; line-height: 1.6;">
-                        1. Envoyez <strong>{{ current_user.prix_a_payer }} FCFA</strong> via Mobile Money (MTN ou Orange) ou par Carte Visa au numéro suivant :<br>
-                        <!-- ⚠️ REMPLACE CE NUMERO PAR TON VRAI NUMERO MTN/ORANGE ICI ⚠️ -->
-                        <strong style="font-size: 22px; color: #b45309;">+237 6XX XX XX XX</strong><br><br>
-                        2. Envoyez la capture d'écran du paiement sur WhatsApp au même numéro.<br><br>
-                        3. Dès que nous recevons votre paiement, votre compte sera activé sous 1 heure !
+                    <h3 style="color: #92400e; margin-bottom: 15px; font-size: 18px;">💳 Moyens de paiement disponibles :</h3>
+                    
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #fcd34d;">
+                        <strong style="color: #b45309; font-size: 16px;">📱 MTN Mobile Money :</strong><br>
+                        <span style="font-size: 22px; font-weight: bold; color: #111827;">675 48 72 56</span>
+                    </div>
+
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #fcd34d;">
+                        <strong style="color: #b45309; font-size: 16px;">📱 Orange Money :</strong><br>
+                        <span style="font-size: 22px; font-weight: bold; color: #111827;">697 29 13 31</span>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: #b45309; font-size: 16px;">💳 Carte Visa :</strong><br>
+                        <span style="font-size: 18px; font-weight: bold; color: #111827; letter-spacing: 1px;">4834 5600 6228 4200</span>
+                    </div>
+
+                    <p style="color: #78350f; font-size: 14px; margin-top: 20px; font-weight: bold;">
+                        ⚠️ Après le paiement (MTN/Orange/Visa), envoyez la capture d'écran sur WhatsApp au <strong>675 48 72 56</strong> pour activer votre compte sous 1 heure.
                     </p>
                 </div>
             </div>
