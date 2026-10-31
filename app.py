@@ -8,6 +8,7 @@ import csv
 import io
 from io import BytesIO
 import requests 
+import os
 from pollinations import Pollinations
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -15,8 +16,16 @@ from reportlab.lib.units import cm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'une_cle_secrete_tres_difficile_a_deviner'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///avis.db'
+
+# ==============================================================
+# CONNEXION A LA BASE DE DONNÉES (RENDER / POSTGRESQL)
+# ==============================================================
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///avis.db')
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
 
 login_manager = LoginManager()
@@ -112,8 +121,6 @@ def inscription():
             return redirect(url_for('inscription'))
         
         prix_final = PRIX_BASE
-        
-        # On vérifie si le code existe dans la base de données
         if code_promo:
             promo_en_bdd = CodePromo.query.filter_by(code=code_promo).first()
             if promo_en_bdd:
@@ -271,7 +278,7 @@ def abonnement():
 @app.route('/widget')
 @login_required
 def widget():
-    code_html = f'<script src="http://127.0.0.1:5000/widget-api/{current_user.id}"></script>'
+    code_html = f'<script src="https://nzinah.onrender.com/widget-api/{current_user.id}"></script>'
     return render_template('widget.html', code_html=code_html)
 
 @app.route('/widget-api/<int:user_id>')
@@ -331,7 +338,6 @@ def admin_secret():
         return redirect(url_for('accueil'))
         
     if request.method == 'POST':
-        # Création d'un nouveau code promo
         nouveau_code = request.form['code'].strip().upper()
         reduction = int(request.form['reduction'])
         partenaire = request.form['partenaire']
@@ -363,7 +369,9 @@ def activer_client(user_id):
         flash(f"Le compte de {user.nom_entreprise} a été activé !", "success")
     return redirect(url_for('admin_secret'))
 
+# --- CREATION DE LA BASE DE DONNÉES AU DEMARRAGE ---
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
