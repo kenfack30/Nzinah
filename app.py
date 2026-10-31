@@ -26,6 +26,12 @@ if db_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# CORRECTION POUR RENDER : Gestion des coupures de connexion
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
+
 db = SQLAlchemy(app)
 
 login_manager = LoginManager()
@@ -373,9 +379,6 @@ def activer_client(user_id):
 # RECREATION DES TABLES (POUR PRENDRE EN COMPTE LES NOUVELLES COLONNES)
 # ==============================================================
 with app.app_context():
-    # On supprime les anciennes tables
-    db.drop_all()
-    # On recrée les tables avec les nouvelles colonnes
     db.create_all()
 
 if __name__ == '__main__':
