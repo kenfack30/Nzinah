@@ -370,9 +370,12 @@ def activer_client(user_id):
     return redirect(url_for('admin_secret'))
 
 # ==============================================================
-# CREATION AUTOMATIQUE DES TABLES SUR RENDER
+# RECREATION DES TABLES (POUR PRENDRE EN COMPTE LES NOUVELLES COLONNES)
 # ==============================================================
 with app.app_context():
+    # On supprime les anciennes tables
+    db.drop_all()
+    # On recrée les tables avec les nouvelles colonnes
     db.create_all()
 
 if __name__ == '__main__':
